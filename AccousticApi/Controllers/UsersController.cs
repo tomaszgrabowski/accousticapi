@@ -7,21 +7,36 @@ using Microsoft.Extensions.Logging;
 
 namespace AccousticApi.Controllers
 {
+    using DbContext;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.EntityFrameworkCore;
+
     [ApiController]
     [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    public class AcUsersController : ControllerBase
     {
-        private readonly ILogger<WeatherForecastController> _logger;
+        private readonly AcUsersDbContext _context;
+        private readonly ILogger<AcUsersController> _logger;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public AcUsersController(AcUsersDbContext context , ILogger<AcUsersController> logger)
         {
+            _context = context;
             _logger = logger;
         }
 
         [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        public async Task<IActionResult> Get()
         {
-            return null;
+            try
+            {
+                var acUsers = await _context.AcUsers.ToListAsync();
+                return Ok(acUsers);
+            }
+            catch (Exception e)
+            {
+                _logger.Log(LogLevel.Critical, e, "Critical exception during [Get] AcUsers");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }

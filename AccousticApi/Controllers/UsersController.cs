@@ -19,8 +19,6 @@ namespace AccousticApi.Controllers
         private readonly ILogger<AcUsersController> _logger;
         private readonly int _pageSize = 10;
 
-        //TODO: common error handler
-
         public AcUsersController(AcUsersDbContext context, ILogger<AcUsersController> logger)
         {
             _context = context;

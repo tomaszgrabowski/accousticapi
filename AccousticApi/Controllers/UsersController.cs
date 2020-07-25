@@ -17,6 +17,7 @@ namespace AccousticApi.Controllers
     {
         private readonly AcUsersDbContext _context;
         private readonly ILogger<AcUsersController> _logger;
+        private readonly int _pageSize = 10;
 
         public AcUsersController(AcUsersDbContext context, ILogger<AcUsersController> logger)
         {
@@ -25,11 +26,15 @@ namespace AccousticApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(CancellationToken token)
+        [Route("search/{searchText}/{page}")]
+        public async Task<IActionResult> Get([FromRoute] string searchText, [FromRoute] int page,
+            CancellationToken token)
         {
             try
             {
-                var acUsers = await _context.AcUsers.ToListAsync(token);
+                var _offset = page * _pageSize;
+                var acUsers = await _context.AcUsers.Where(acUser => acUser.Email.StartsWith(searchText)).Skip(_offset)
+                    .Take(_pageSize).ToListAsync(token);
                 return Ok(acUsers);
             }
             catch (Exception e)
@@ -41,7 +46,7 @@ namespace AccousticApi.Controllers
 
         [HttpGet]
         [Route("findBy/{startingLetters}")]
-        public async Task<IActionResult> FindByEmail([FromRoute]string startingLetters, CancellationToken token)
+        public async Task<IActionResult> FindByEmail([FromRoute] string startingLetters, CancellationToken token)
         {
             try
             {

@@ -26,6 +26,22 @@ namespace AccousticApi.Controllers
         }
 
         [HttpGet]
+        [Route("count/{searchText}")]
+        public async Task<IActionResult> Get([FromRoute] string searchText, CancellationToken token)
+        {
+            try
+            {
+                var count = await _context.AcUsers.CountAsync(acUser => acUser.Email.StartsWith(searchText), token);
+                return Ok(count);
+            }
+            catch (Exception e)
+            {
+                _logger.Log(LogLevel.Critical, e, "Critical exception during [Get] AcUsers");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [HttpGet]
         [Route("search/{searchText}/{page}")]
         public async Task<IActionResult> Get([FromRoute] string searchText, [FromRoute] int page,
             CancellationToken token)

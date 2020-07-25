@@ -19,6 +19,8 @@ namespace AccousticApi.Controllers
         private readonly ILogger<AcUsersController> _logger;
         private readonly int _pageSize = 10;
 
+        //TODO: common error handler
+
         public AcUsersController(AcUsersDbContext context, ILogger<AcUsersController> logger)
         {
             _context = context;
@@ -29,16 +31,8 @@ namespace AccousticApi.Controllers
         [Route("count/{searchText}")]
         public async Task<IActionResult> Get([FromRoute] string searchText, CancellationToken token)
         {
-            try
-            {
-                var count = await _context.AcUsers.CountAsync(acUser => acUser.Email.StartsWith(searchText), token);
-                return Ok(count);
-            }
-            catch (Exception e)
-            {
-                _logger.Log(LogLevel.Critical, e, "Critical exception during [Get] AcUsers");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            var count = await _context.AcUsers.CountAsync(acUser => acUser.Email.StartsWith(searchText), token);
+            return Ok(count);
         }
 
         [HttpGet]
@@ -46,33 +40,36 @@ namespace AccousticApi.Controllers
         public async Task<IActionResult> Get([FromRoute] string searchText, [FromRoute] int page,
             CancellationToken token)
         {
-            try
+            return await this.TryHandleRequest(async () =>
             {
                 var _offset = page * _pageSize;
                 var acUsers = await _context.AcUsers.Where(acUser => acUser.Email.StartsWith(searchText)).Skip(_offset)
                     .Take(_pageSize).ToListAsync(token);
                 return Ok(acUsers);
-            }
-            catch (Exception e)
-            {
-                _logger.Log(LogLevel.Critical, e, "Critical exception during [Get] AcUsers");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            });
         }
 
         [HttpGet]
         [Route("findBy/{startingLetters}")]
         public async Task<IActionResult> FindByEmail([FromRoute] string startingLetters, CancellationToken token)
         {
-            try
+            return await this.TryHandleRequest(async () =>
             {
                 var acUsers = await _context.AcUsers.Where(acUser => acUser.Email.StartsWith(startingLetters))
                     .OrderBy(acUser => acUser.Email).Take(10).ToListAsync(token);
                 return Ok(acUsers);
+            });
+        }
+
+        private async Task<IActionResult> TryHandleRequest(Func<Task<IActionResult>> fn)
+        {
+            try
+            {
+                return await fn();
             }
             catch (Exception e)
             {
-                _logger.Log(LogLevel.Critical, e, "Critical exception during [Get] AcUsers");
+                _logger.Log(LogLevel.Critical, e, "Critical exception!!!");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

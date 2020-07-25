@@ -1,8 +1,6 @@
 namespace AccousticApi.DbContext
 {
-    using System.Configuration;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.DependencyInjection;
     using Models;
     using Microsoft.Extensions.Configuration;
 

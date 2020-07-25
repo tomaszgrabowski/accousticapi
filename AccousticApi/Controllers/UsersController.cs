@@ -40,13 +40,13 @@ namespace AccousticApi.Controllers
         }
 
         [HttpGet]
-        [Route("findby/{startingLetters}")]
+        [Route("findBy/{startingLetters}")]
         public async Task<IActionResult> FindByEmail([FromRoute]string startingLetters, CancellationToken token)
         {
             try
             {
                 var acUsers = await _context.AcUsers.Where(acUser => acUser.Email.StartsWith(startingLetters))
-                    .OrderBy(acUser => acUser.Email).ToListAsync(token);
+                    .OrderBy(acUser => acUser.Email).Take(10).ToListAsync(token);
                 return Ok(acUsers);
             }
             catch (Exception e)
